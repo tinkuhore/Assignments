@@ -1,0 +1,79 @@
+Scope Rules in Functions
+Now that we’ve stepped up to writing our own functions, we need to get a bit more formal about what names mean in Python. When you use a name in a program, Python creates, changes, or looks up the name in what is known as a namespace—a place where names live. As we’ve seen, names in Python spring into existence when they are assigned a value. Because names aren’t declared ahead of time, Python uses the assignment of a name to associate it with a particular namespace. Besides packaging code, functions add an extra namespace layer to your programs—by default, names assigned inside a function are associated with that function’s namespace, and no other.
+
+Here’s how this works. Before you started writing functions, all code was written at the top-level of a module, so the names either lived in the module itself, or were built-ins that Python predefines (e.g., open).[29] Functions provide a nested namespace (sometimes called a scope), which localizes the names they use, such that names inside the function won’t clash with those outside (in a module or other function). We usually say that functions define a local scope, and modules define a global scope. The two scopes are related as follows:
+
+The enclosing module is a global scope
+Each module is a global scope—a namespace where variables created (assigned) at the top level of a module file live.
+
+Each call to a function is a new local scope
+Every time you call a function, you create a new local scope—a namespace where names created inside the function usually live.
+
+Assigned names are local, unless declared global
+By default, all the names assigned inside a function definition are put in the local scope (the namespace associated with the function call). If you need to assign a name that lives at the top-level of the module enclosing the function, you can do so by declaring it in a global statement inside the function.
+
+All other names are global or built-in
+Names not assigned a value in the function definition are assumed to be globals (in the enclosing module’s namespace) or built-in (in the predefined names module Python provides).
+
+Name Resolution: The LGB Rule
+If the prior section sounds confusing, it really boils down to three simple rules:
+
+Name references search at most three scopes: local, then global, then built-in.
+
+Name assignments create or change local names by default.
+
+“Global” declarations map assigned names to an enclosing module’s scope.
+
+In other words, all names assigned inside a function def statement are locals by default; functions can use globals, but they must declare globals to change them. Python’s name resolution is sometimes called the LGB rule, after the scope names:
+
+When you use an unqualified name inside a function, Python searches three scopes—the local (L), then the global (G), and then the built-in (B)—and stops at the first place the name is found.
+
+When you assign a name in a function (instead of just referring to it in an expression), Python always creates or changes the name in the local scope, unless it’s declared to be global in that function.
+
+When outside a function (i.e., at the top-level of a module or at the interactive prompt), the local scope is the same as the global—a module’s namespace.
+
+Figure 4.1 illustrates Python’s three scopes. As a preview, we’d also like you to know that these rules only apply to simple names (such as spam). In the next two chapters, we’ll see that the rules for qualified names (such as object.spam, called attributes) live in a particular object and so work differently.
+
+The LGB scope lookup rule
+Figure 4-1. The LGB scope lookup rule
+
+Example
+Let’s look at an example that demonstrates scope ideas. Suppose we write the following code in a module file:
+
+# global scope
+X = 99                # X and func assigned in module: global
+          
+def func(Y):          # Y and Z assigned in function: locals
+    # local scope
+    Z = X + Y         # X is not assigned, so it's a global
+    return Z
+
+func(1)               # func in module: result=100
+This module, and the function it contains, use a number of names to do their business. Using Python’s scope rules, we can classify the names as follows:
+
+Global names: X, func
+X is a global because it’s assigned at the top level of the module file; it can be referenced inside the function without being declared global. func is global for the same reason; the def statement assigns a function object to the name func at the top level of the module.
+
+Local names: Y, Z
+Y and Z are local to the function (and exist only while the function runs), because they are both assigned a value in the function definition; Z by virtue of the = statement, and Y because arguments are always passed by assignment (more on this in a minute).
+
+The whole point behind this name segregation scheme is that local variables serve as temporary names you need only while a function is running. For instance, the argument Y and the addition result Z exist only inside the function; they don’t interfere with the enclosing module’s namespace (or any other function, for that matter). The local/global distinction also makes a function easier to understand; most of the names it uses appear in the function itself, not at some arbitrary place in a module.[30]
+
+The global Statement
+The global statement is the only thing that’s anything like a declaration in Python. It tells Python that a function plans to change global names—names that live in the enclosing module’s scope (namespace). We’ve talked about global in passing already; as a summary:
+
+global means “a name at the top-level of a module file.”
+
+Global names must be declared only if they are assigned in a function.
+
+Global names may be referenced in a function without being declared.
+
+The global statement is just the keyword global, followed by one or more names separated by commas. All the listed names will be mapped to the enclosing module’s scope when assigned or referenced within the function body. For instance:
+
+y, z = 1, 2         # global variables in module
+
+def all_global():
+    global x        # declare globals assigned
+    x = y + z       # no need to declare y,z: 3-scope rule
+Here, x, y, and z are all globals inside function all_global. y and z are global because they aren’t assigned in the function; x is global because we said so: we listed it in a global statement to map it to the module’s scope explicitly. Without the global here, x would be considered local by virtue of the assignment. Notice that y and z are not declared global; Python’s LGB lookup rule finds them in the module automatically. Also notice that x might not exist in the enclosing module before the function runs; if not, the assignment in the function creates x in the module.
+
